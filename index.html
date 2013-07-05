@@ -1,0 +1,85 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>DOMpteur</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <script type="text/javascript" src="./DOMpteur.js"></script>
+</head>
+<body>
+  <h1>DOMpteur</h1>
+  <h2>play with your DOM-tree</h2>
+  <div id="demodiv">
+    <p id="demoele" class="demoeleclass" data-foo="foodata">lorem ipsum</p>
+    <p>dolor sit amet</p>
+    <div>
+      <div>
+        paragraph
+      </div>
+      <p><small>(1)</small> </p>
+      <p><small>(2)</small> </p>
+      <p><small>(3)</small> </p>
+      <p><small>(4)</small> </p>
+    </div>
+  </div>
+  <script>
+    onDOMReady(function () {
+      window.setTimeout(demos, 1500, 1);
+      window.setTimeout(demos, 3000, 2);
+      window.setTimeout(demos, 4500, 3);
+      window.setTimeout(demos, 6000, 4);
+      window.setTimeout(demos, 7500, 5);
+      window.setTimeout(demos, 9000, 6);
+      
+      window.setTimeout(demos, 1000, 7, '#e3ae23');
+      window.setTimeout(demos, 2000, 7, '#e33323');
+      window.setTimeout(demos, 3000, 7, '#1333f3');
+      window.setTimeout(demos, 4000, 7, '#13f3f3');
+      window.setTimeout(demos, 5000, 7, '#cccccc');
+      window.setTimeout(demos, 6000, 7, '#666666');
+      window.setTimeout(demos, 7000, 7, '#000000');
+    });
+    
+    function demos (i) {
+      var args = Array.prototype.slice.call(arguments), ele;
+      switch (i) {
+        case 1:
+          $('#demoele').addHTML('<br>add HTML via Id');
+          break;
+        case 2:
+          $('.demoeleclass')[0].addHTML('<br>add HTML via Class');
+          break;
+        case 3:
+          $('#demodiv').$(' p')[1].addHTML('<br>add HTML via TagName');
+          break;
+        case 4:
+          $('#demodiv').$(' div')[0].$(' p').forEach(
+            function (elem) {
+              elem.addHTML('add HTML via Id, two TagNames and forEach');
+            }
+          );
+          break;
+        case 5:
+          $('#demodiv').childNodes.last().addAsFirst(
+            {
+              text:'foo',
+              tag:'p'
+            }
+          );
+          break;
+        case 6:
+          ele = document.createElement('p');
+          ele.innerText = 'bar';
+          $('#demodiv').childNodes.last().addAsLast(ele);
+          break;
+        case 7:
+          $('#demodiv').find('p').forEach(
+            function (elem) {
+              elem.style.color = args[1];
+            }
+          );
+          break;
+      }
+    }
+  </script>
+</body>
+</html>
