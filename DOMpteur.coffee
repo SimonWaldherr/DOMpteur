@@ -6,7 +6,7 @@
 # http://simon.waldherr.eu/license/mit/
 #
 # Github:  https://github.com/simonwaldherr/DOMpteur/
-# Version: 0.1.0
+# Version: 0.2.0
 #
 
 dompteur =
@@ -20,6 +20,74 @@ dompteur =
 
   domready: false
   defaultTagName: "p"
+  htmldecode: (string) ->
+    "use strict"
+    div = document.createElement("div")
+    div.innerHTML = string
+    string = div.innerText or div.textContent
+    div = `undefined`
+    string
+
+  htmlencode: (string) ->
+    "use strict"
+    div = document.createElement("div")
+    div.appendChild document.createTextNode(string)
+    string = div.innerHTML
+    div = `undefined`
+    string
+
+  toJSON: (xml) ->
+    "use strict"
+    isObject = true
+    json = {}
+    parseNode = undefined
+    xmlroot = undefined
+    if typeof xml is "string"
+      xmlroot = document.createElement("div")
+      xmlroot.innerHTML = xml
+      xml = xmlroot
+      isObject = false
+    parseNode = (node, obj) ->
+      nodeName = undefined
+      lname = undefined
+      value = undefined
+      attr = undefined
+      i = undefined
+      j = undefined
+      k = undefined
+      p = undefined
+      if node.nodeType is 3
+        return  unless node.nodeValue.match(/[\S]{2,}/)
+        obj.$ = node.nodeValue
+      else if node.nodeType is 1
+        p = {}
+        nodeName = node.nodeName
+        i = 0
+        while node.attributes and i < node.attributes.length
+          attr = node.attributes[i]
+          lname = attr.localName
+          value = attr.nodeValue
+          p["@" + lname] = value
+          i += 1
+        if obj[nodeName] instanceof Array
+          obj[nodeName].push p
+        else if obj[nodeName] instanceof Object
+          obj[nodeName] = [obj[nodeName], p]
+        else
+          obj[nodeName] = p
+        j = 0
+        while j < node.childNodes.length
+          parseNode node.childNodes[j], p
+          j += 1
+      else if node.nodeType is 9
+        k = 0
+        while k < node.childNodes.length
+          parseNode node.childNodes[k], obj
+          k += 1
+
+    parseNode xml, json
+    json = json.DIV  unless isObject
+    json
 
 $ = undefined
 onDOMReady = undefined
@@ -64,6 +132,14 @@ Object::addHTML = (if Object::addHTML isnt `undefined` then Object::addHTML else
   "use strict"
   @innerHTML += arg
 )
+Object::addViaJSON = (if Object::addViaJSON isnt `undefined` then Object::addViaJSON else (json, buildfunction) ->
+  "use strict"
+  @innerHTML += buildfunction(json)
+)
+Object::addViaXML = (if Object::addViaXML isnt `undefined` then Object::addViaXML else (xml, buildfunction) ->
+  "use strict"
+  @innerHTML += buildfunction(dompteur.toJSON(xml))
+)
 Object::addAsFirst = (if Object::addAsFirst isnt `undefined` then Object::addAsFirst else (arg) ->
   "use strict"
   ele = undefined
@@ -95,6 +171,15 @@ Object::addAsLast = (if Object::addAsLast isnt `undefined` then Object::addAsLas
     ele = arg
   @appendChild ele
   ele
+)
+Object::encodeHTML = (if Object::encodeIt isnt `undefined` then Object::encodeIt else ->
+  "use strict"
+  return dompteur.htmlencode(@outerHTML)  if typeof this is "object"
+  dompteur.htmlencode this
+)
+String::decodeHTML = (if String::decodeHTML isnt `undefined` then String::decodeHTML else ->
+  "use strict"
+  dompteur.htmldecode this
 )
 NodeList::first = (if NodeList::first isnt `undefined` then NodeList::first else ->
   "use strict"

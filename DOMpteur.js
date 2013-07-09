@@ -6,7 +6,7 @@
  * http://simon.waldherr.eu/license/mit/
  *
  * Github:  https://github.com/simonwaldherr/DOMpteur/
- * Version: 0.1.0
+ * Version: 0.2.0
  */
 
 /*jslint browser: true, plusplus: true, indent: 2 */
@@ -22,7 +22,84 @@ var dompteur = {
       '*': 'querySelectorAll'
     },
     domready : false,
-    defaultTagName : 'p'
+    defaultTagName : 'p',
+    htmldecode: function (string) {
+      "use strict";
+      var div = document.createElement('div');
+      div.innerHTML = string;
+      string = div.innerText || div.textContent;
+      div = undefined;
+      return string;
+    },
+    htmlencode: function (string) {
+      "use strict";
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(string));
+      string = div.innerHTML;
+      div = undefined;
+      return string;
+    },
+    toJSON: function (xml) {
+      "use strict";
+      var isObject = true,
+        json = {},
+        parseNode,
+        xmlroot;
+
+      if (typeof xml === 'string') {
+        xmlroot = document.createElement('div');
+        xmlroot.innerHTML = xml;
+        xml = xmlroot;
+        isObject = false;
+      }
+      parseNode = function (node, obj) {
+        var nodeName,
+          lname,
+          value,
+          attr,
+          i,
+          j,
+          k,
+          p;
+
+        if (node.nodeType === 3) {
+          if (!node.nodeValue.match(/[\S]{2,}/)) {
+            return;
+          }
+          obj.$ = node.nodeValue;
+        } else if (node.nodeType === 1) {
+          p = {};
+          nodeName = node.nodeName;
+          for (i = 0; node.attributes && i < node.attributes.length; i += 1) {
+            attr = node.attributes[i];
+            lname = attr.localName;
+            value = attr.nodeValue;
+            p["@" + lname] = value;
+          }
+          if (obj[nodeName] instanceof Array) {
+            obj[nodeName].push(p);
+          } else if (obj[nodeName] instanceof Object) {
+            obj[nodeName] = [obj[nodeName], p];
+          } else {
+            obj[nodeName] = p;
+          }
+          for (j = 0; j < node.childNodes.length; j += 1) {
+            parseNode(node.childNodes[j], p);
+          }
+        } else if (node.nodeType === 9) {
+          for (k = 0; k < node.childNodes.length; k += 1) {
+            parseNode(node.childNodes[k], obj);
+          }
+        }
+      };
+
+      parseNode(xml, json);
+      if (!isObject) {
+        json = json.DIV;
+      }
+
+      return json;
+    }
   },
   $,
   onDOMReady,
@@ -77,6 +154,16 @@ Object.prototype.addHTML = Object.prototype.addHTML !== undefined ? Object.proto
   this.innerHTML += arg;
 };
 
+Object.prototype.addViaJSON = Object.prototype.addViaJSON !== undefined ? Object.prototype.addViaJSON : function (json, buildfunction) {
+  "use strict";
+  this.innerHTML += buildfunction(json);
+};
+
+Object.prototype.addViaXML = Object.prototype.addViaXML !== undefined ? Object.prototype.addViaXML : function (xml, buildfunction) {
+  "use strict";
+  this.innerHTML += buildfunction(dompteur.toJSON(xml));
+};
+
 Object.prototype.addAsFirst = Object.prototype.addAsFirst !== undefined ? Object.prototype.addAsFirst : function (arg) {
   "use strict";
   var ele;
@@ -113,6 +200,19 @@ Object.prototype.addAsLast = Object.prototype.addAsLast !== undefined ? Object.p
   }
   this.appendChild(ele);
   return ele;
+};
+
+Object.prototype.encodeHTML = Object.prototype.encodeIt !== undefined ? Object.prototype.encodeIt : function () {
+  "use strict";
+  if (typeof this === 'object') {
+    return dompteur.htmlencode(this.outerHTML);
+  }
+  return dompteur.htmlencode(this);
+};
+
+String.prototype.decodeHTML = String.prototype.decodeHTML !== undefined ? String.prototype.decodeHTML : function () {
+  "use strict";
+  return dompteur.htmldecode(this);
 };
 
 NodeList.prototype.first = NodeList.prototype.first !== undefined ? NodeList.prototype.first : function () {
