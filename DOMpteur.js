@@ -6,7 +6,7 @@
  * http://simon.waldherr.eu/license/mit/
  *
  * Github:  https://github.com/simonwaldherr/DOMpteur/
- * Version: 0.2.0
+ * Version: 0.2.1
  */
 
 /*jslint browser: true, plusplus: true, indent: 2 */
@@ -99,37 +99,88 @@ var dompteur = {
       }
 
       return json;
+    },
+    addHeadElement: function (content, id, mode) {
+      "use strict";
+      var newid,
+        ele,
+        selid = document.getElementById(id);
+
+      if (typeof content !== 'Object') {
+        if (id !== undefined) {
+          if (selid !== null) {
+            if (selid.parentNode.tagName === 'head') {
+              if (content.indexOf('{') !== -1) {
+                if ((selid.getAttribute('href') === undefined) && (selid.getAttribute('src') === undefined) && (selid.tagName === mode)) {
+                  ele = document.getElementById(id);
+                }
+                return false;
+              }
+            }
+          }
+        } else {
+          newid = 'dompteur' + parseInt(Date.now() / 1000, 10);
+          if (content.indexOf('{') !== -1) {
+            ele = document.createElement(mode);
+            ele.innerHTML = content;
+          } else {
+            if (mode === 'style') {
+              ele = document.createElement('link');
+              ele.href = content;
+              ele.rel = "stylesheet";
+              ele.type = "text/css";
+            } else {
+              ele = document.createElement('script');
+              ele.src = content;
+              ele.type = "text/javascript";
+            }
+          }
+          ele.id = newid;
+          document.getElementsByTagName('head')[0].appendChild(ele);
+        }
+        if (newid !== undefined) {
+          return newid;
+        }
+        return id;
+      }
+    },
+    addCSS : function (content, id) {
+      "use strict";
+      return dompteur.addHeadElement(content, id, 'style');
+    },
+    addJS : function (content, id) {
+      "use strict";
+      return dompteur.addHeadElement(content, id, 'script');
+    },
+    setDOMReady : function () {
+      "use strict";
+      dompteur.domready = true;
+    },
+    getXbyX : function (arg) {
+      "use strict";
+      var mode = arg.charAt(0),
+        matches = dompteur.matches[mode];
+      return (document[matches](arg.substr(1)));
     }
   },
   $,
-  onDOMReady,
-  setDOMReady;
+  onDOMReady;
 
-$ = ($ !== undefined) ? $ : function (arg) {
-  "use strict";
-  var mode = arg.charAt(0),
-    matches = dompteur.matches[mode];
-  return (document[matches](arg.substr(1)));
-};
+$ = ($ !== undefined) ? $ : dompteur.getXbyX;
 
 onDOMReady = (onDOMReady !== undefined) ? onDOMReady : function (callback) {
   "use strict";
   if (dompteur.domready === false) {
     if (window.addEventListener) {
-      window.addEventListener('DOMContentLoaded', setDOMReady, false);
+      window.addEventListener('DOMContentLoaded', dompteur.setDOMReady, false);
       window.addEventListener('DOMContentLoaded', callback, false);
     } else {
-      window.attachEvent('onload', setDOMReady);
+      window.attachEvent('onload', dompteur.setDOMReady);
       window.attachEvent('onload', callback);
     }
   } else {
     callback();
   }
-};
-
-setDOMReady = (setDOMReady !== undefined) ? setDOMReady : function () {
-  "use strict";
-  dompteur.domready = true;
 };
 
 Object.prototype.$ = Object.prototype.$ !== undefined ? Object.prototype.$ : function (arg) {

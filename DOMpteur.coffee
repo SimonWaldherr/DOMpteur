@@ -6,7 +6,7 @@
 # http://simon.waldherr.eu/license/mit/
 #
 # Github:  https://github.com/simonwaldherr/DOMpteur/
-# Version: 0.2.0
+# Version: 0.2.1
 #
 
 dompteur =
@@ -89,30 +89,70 @@ dompteur =
     json = json.DIV  unless isObject
     json
 
+  addHeadElement: (content, id, mode) ->
+    "use strict"
+    newid = undefined
+    ele = undefined
+    selid = document.getElementById(id)
+    if typeof content isnt "Object"
+      if id isnt `undefined`
+        if selid isnt null
+          if selid.parentNode.tagName is "head"
+            if content.indexOf("{") isnt -1
+              ele = document.getElementById(id)  if (selid.getAttribute("href") is `undefined`) and (selid.getAttribute("src") is `undefined`) and (selid.tagName is mode)
+              return false
+      else
+        newid = "dompteur" + parseInt(Date.now() / 1000, 10)
+        if content.indexOf("{") isnt -1
+          ele = document.createElement(mode)
+          ele.innerHTML = content
+        else
+          if mode is "style"
+            ele = document.createElement("link")
+            ele.href = content
+            ele.rel = "stylesheet"
+            ele.type = "text/css"
+          else
+            ele = document.createElement("script")
+            ele.src = content
+            ele.type = "text/javascript"
+        ele.id = newid
+        document.getElementsByTagName("head")[0].appendChild ele
+      return newid  if newid isnt `undefined`
+      id
+
+  addCSS: (content, id) ->
+    "use strict"
+    dompteur.addHeadElement content, id, "style"
+
+  addJS: (content, id) ->
+    "use strict"
+    dompteur.addHeadElement content, id, "script"
+
+  setDOMReady: ->
+    "use strict"
+    dompteur.domready = true
+
+  getXbyX: (arg) ->
+    "use strict"
+    mode = arg.charAt(0)
+    matches = dompteur.matches[mode]
+    document[matches] arg.substr(1)
+
 $ = undefined
 onDOMReady = undefined
-setDOMReady = undefined
-$ = (if ($ isnt `undefined`) then $ else (arg) ->
-  "use strict"
-  mode = arg.charAt(0)
-  matches = dompteur.matches[mode]
-  document[matches] arg.substr(1)
-)
+$ = (if ($ isnt `undefined`) then $ else dompteur.getXbyX)
 onDOMReady = (if (onDOMReady isnt `undefined`) then onDOMReady else (callback) ->
   "use strict"
   if dompteur.domready is false
     if window.addEventListener
-      window.addEventListener "DOMContentLoaded", setDOMReady, false
+      window.addEventListener "DOMContentLoaded", dompteur.setDOMReady, false
       window.addEventListener "DOMContentLoaded", callback, false
     else
-      window.attachEvent "onload", setDOMReady
+      window.attachEvent "onload", dompteur.setDOMReady
       window.attachEvent "onload", callback
   else
     callback()
-)
-setDOMReady = (if (setDOMReady isnt `undefined`) then setDOMReady else ->
-  "use strict"
-  dompteur.domready = true
 )
 Object::$ = (if Object::$ isnt `undefined` then Object::$ else (arg) ->
   "use strict"
