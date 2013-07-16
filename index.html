@@ -5,7 +5,7 @@
   <script type="text/javascript" src="./DOMpteur.js"></script>
 </head>
 <body>
-  <h1>DOMpteur</h1>
+  <h1>DOMpteur <small>v0.2.2</small></h1>
   <h2>play with your DOM-tree</h2>
   <div id="demodiv">
     <p id="demoele" class="demoeleclass" data-foo="foodata">lorem ipsum</p>
@@ -24,6 +24,9 @@
     
   </div>
   <div id="demoencode">
+    
+  </div>
+  <div id="withstyle" style="background: #333; color: #ccc; border: 1px solid black; display: none;">
     
   </div>
   <pre style="display:none;"><code id="xmlexample"><!--
@@ -56,15 +59,17 @@
 --></code></pre>
   <script>
     onDOMReady(function () {
-      window.setTimeout(demos,   500, 0);
-      window.setTimeout(demos,  1500, 1);
-      window.setTimeout(demos,  3000, 2);
-      window.setTimeout(demos,  4500, 3);
-      window.setTimeout(demos,  6000, 4);
-      window.setTimeout(demos,  7500, 5);
-      window.setTimeout(demos,  9000, 6);
-      window.setTimeout(demos, 10500, 8);
-      window.setTimeout(demos, 12000, 9);
+      window.setTimeout(demos,   500,  0);
+      window.setTimeout(demos,  1500,  1);
+      window.setTimeout(demos,  3000,  2);
+      window.setTimeout(demos,  4500,  3);
+      window.setTimeout(demos,  6000,  4);
+      window.setTimeout(demos,  7500,  5);
+      window.setTimeout(demos,  9000,  6);
+      window.setTimeout(demos, 10500,  8);
+      window.setTimeout(demos, 12000,  9);
+      window.setTimeout(demos, 13500, 10);
+      window.setTimeout(demos, 15000, 11);
       
       window.setTimeout(demos, 1000, 7, '#e3ae23');
       window.setTimeout(demos, 2000, 7, '#e33323');
@@ -147,6 +152,13 @@
           $('#demoencode').addHTML($('#demoele').encodeHTML() + '<br/>');
           $('#demoencode').addHTML('<div>foo</div>'.encodeHTML() + '<br/>');
           $('#demoencode').addHTML('&lt;div&gt;foo&lt/div&gt;'.decodeHTML() + '<br/>');
+          break;
+        case 10:
+          $('#withstyle').setHTML(JSON.stringify($('#withstyle').getCSS(), null, '  '));
+          $('#withstyle').setCSS({'display':'block'});
+          break;
+        case 11:
+          $('#withstyle').clearCSS();
           break;
       }
     }

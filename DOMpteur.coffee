@@ -1,13 +1,10 @@
-#
 # DOMpteur
 #
 # Copyright 2013, Simon Waldherr - http://simon.waldherr.eu/
-# Released under the MIT Licence
-# http://simon.waldherr.eu/license/mit/
+# Released under the MIT Licence - http://simon.waldherr.eu/license/mit/
 #
 # Github:  https://github.com/simonwaldherr/DOMpteur/
-# Version: 0.2.1
-#
+# Version: 0.2.2
 
 dompteur =
   matches:
@@ -133,27 +130,89 @@ dompteur =
     "use strict"
     dompteur.domready = true
 
+  workOnCSS: (ele, callbackele, callbacklist, replaceobject) ->
+    "use strict"
+    style = undefined
+    replObj = {}
+    cblist = false
+    cbele = false
+    i = undefined
+    l = undefined
+    prop = undefined
+    val = undefined
+    returnO = {}
+    cbele = callbackele  if callbackele isnt null  if callbackele isnt `undefined`
+    cblist = callbacklist  if callbacklist isnt null  if callbacklist isnt `undefined`
+    replObj = replaceobject  if replaceobject isnt null  if replaceobject isnt `undefined`
+
+    #ff and webkit
+    if window.getComputedStyle
+      style = window.getComputedStyle(ele, null)
+      i = 0
+      l = style.length
+
+      while i < l
+        prop = style[i]
+        val = style.getPropertyValue(prop)
+        cbele prop, style.getPropertyValue(prop)  if cbele isnt false
+        if replObj[prop] isnt `undefined`
+          ele.style[prop] = replObj[prop]
+        else ele.style[prop] = ""  if replObj.all isnt `undefined`
+        returnO[prop] = val
+        i += 1
+      cblist returnO  if cblist isnt false
+      return returnO
+
+    #ie and old opera
+    if ele.currentStyle
+      style = ele.currentStyle
+      for prop of style
+        if style[prop] isnt `undefined`
+          if style[prop].length > 3
+            cbele prop, style[prop]  if cbele isnt false
+            if replObj[prop] isnt `undefined`
+              ele.style[prop] = replObj[prop]
+            else ele.style[prop] = ""  if replObj.all isnt `undefined`
+            returnO[prop] = style[prop]
+      cblist returnO  if cblist isnt false
+      return returnO
+
+    #fallback
+    style = ele.style
+    if typeof style is "object"
+      for prop of style
+        if typeof style[prop] isnt "function"
+          cbele prop, style[prop]  if cbele isnt false
+          if replObj[prop] isnt `undefined`
+            ele.style[prop] = replObj[prop]
+          else ele.style[prop] = ""  if replObj.all isnt `undefined`
+          returnO[prop] = style[prop]
+      cblist returnO  if cblist isnt false
+      return returnO
+    false
+
   getXbyX: (arg) ->
     "use strict"
     mode = arg.charAt(0)
     matches = dompteur.matches[mode]
     document[matches] arg.substr(1)
 
+  onDOMReady: (callback) ->
+    "use strict"
+    if dompteur.domready is false
+      if window.addEventListener
+        window.addEventListener "DOMContentLoaded", dompteur.setDOMReady, false
+        window.addEventListener "DOMContentLoaded", callback, false
+      else
+        window.attachEvent "onload", dompteur.setDOMReady
+        window.attachEvent "onload", callback
+    else
+      callback()
+
 $ = undefined
 onDOMReady = undefined
 $ = (if ($ isnt `undefined`) then $ else dompteur.getXbyX)
-onDOMReady = (if (onDOMReady isnt `undefined`) then onDOMReady else (callback) ->
-  "use strict"
-  if dompteur.domready is false
-    if window.addEventListener
-      window.addEventListener "DOMContentLoaded", dompteur.setDOMReady, false
-      window.addEventListener "DOMContentLoaded", callback, false
-    else
-      window.attachEvent "onload", dompteur.setDOMReady
-      window.attachEvent "onload", callback
-  else
-    callback()
-)
+onDOMReady = (if (onDOMReady isnt `undefined`) then onDOMReady else dompteur.onDOMReady)
 Object::$ = (if Object::$ isnt `undefined` then Object::$ else (arg) ->
   "use strict"
   mode = arg.charAt(0)
@@ -164,13 +223,17 @@ Object::getData = (if Object::getData isnt `undefined` then Object::getData else
   "use strict"
   @getAttribute "data-" + arg
 )
-Object::setData = (if Object::setData isnt `undefined` then Object::setData else (arg) ->
+Object::setData = (if Object::setData isnt `undefined` then Object::setData else (arg, data) ->
   "use strict"
-  @setAttribute "data-" + arg
+  @setAttribute "data-" + arg, data
 )
 Object::addHTML = (if Object::addHTML isnt `undefined` then Object::addHTML else (arg) ->
   "use strict"
   @innerHTML += arg
+)
+Object::setHTML = (if Object::setHTML isnt `undefined` then Object::setHTML else (arg) ->
+  "use strict"
+  @innerHTML = arg
 )
 Object::addViaJSON = (if Object::addViaJSON isnt `undefined` then Object::addViaJSON else (json, buildfunction) ->
   "use strict"
@@ -212,7 +275,7 @@ Object::addAsLast = (if Object::addAsLast isnt `undefined` then Object::addAsLas
   @appendChild ele
   ele
 )
-Object::encodeHTML = (if Object::encodeIt isnt `undefined` then Object::encodeIt else ->
+Object::encodeHTML = (if Object::encodeHTML isnt `undefined` then Object::encodeHTML else ->
   "use strict"
   return dompteur.htmlencode(@outerHTML)  if typeof this is "object"
   dompteur.htmlencode this
@@ -230,8 +293,22 @@ NodeList::last = (if NodeList::last isnt `undefined` then NodeList::last else ->
   i = @length
   while i > 0
     return this[i]  if this[i].hasChildNodes()  if this[i] isnt `undefined`
-    --i
+    i -= 1
 )
 NodeList::forEach = (if NodeList::forEach isnt `undefined` then NodeList::forEach else Array::forEach)
 Element::find = (if Element::find isnt `undefined` then Element::find else Element::querySelectorAll)
 Element::innerTEXT = (if Element::innerTEXT isnt `undefined` then Element::innerTEXT else Element::textContent)
+Element::getCSS = (if Element::getCSS isnt `undefined` then Element::getCSS else ->
+  "use strict"
+  dompteur.workOnCSS this, null, null
+)
+Element::clearCSS = (if Element::clearCSS isnt `undefined` then Element::clearCSS else ->
+  "use strict"
+  dompteur.workOnCSS this, null, null,
+    all: true
+
+)
+Element::setCSS = (if Element::setCSS isnt `undefined` then Element::setCSS else (cssobject) ->
+  "use strict"
+  dompteur.workOnCSS this, null, null, cssobject
+)

@@ -2,15 +2,49 @@
  * DOMpteur
  *
  * Copyright 2013, Simon Waldherr - http://simon.waldherr.eu/
- * Released under the MIT Licence
- * http://simon.waldherr.eu/license/mit/
+ * Released under the MIT Licence - http://simon.waldherr.eu/license/mit/
  *
  * Github:  https://github.com/simonwaldherr/DOMpteur/
- * Version: 0.2.1
+ * Version: 0.2.2
  */
 
-/*jslint browser: true, plusplus: true, indent: 2 */
+/*jslint browser: true, indent: 2 */
 /*global Object, Element, NodeList */
+/*
+
+var about = {
+  "dompteur.domready"       : ["var",      "true if dom is ready"],
+  "dompteur.htmldecode"     : ["function", "decode html"],
+  "dompteur.htmlencode"     : ["function", "encode html"],
+  "dompteur.toJSON"         : ["function", "convert html/xml to json"],
+  "dompteur.addHeadElement" : ["function", "add style/link/script to head"],
+  "dompteur.addCSS"         : ["function", "see above (but only for style/link)"],
+  "dompteur.addJS"          : ["function", "see above (but only for script)"],
+  "dompteur.setDOMReady"    : ["function", "set dompteur.domready to true"],
+  "dompteur.workOnCSS"      : ["function", "calls a callback function for each style or for a stylelist"],
+  "dompteur.getXbyX"        : ["function", "get Element(s) by id/name/class/tag/..."],
+  "dompteur.onDOMReady"     : ["function", "calls setDOMReady and a definable callback on DOM ready"],
+  "$"                       : ["function", "short version of dompteur.getXbyX if $ is undefined"],
+  "onDOMReady"              : ["function", "short version of dompteur.onDOMReady"],
+  "Object.$"                : ["function", "same as $ but as function of an Object"],
+  "Object.getData"          : ["function", "get Data-Attribute of an Element"],
+  "Object.setData"          : ["function", "set Data-Attribute of an Element"],
+  "Object.addHTML"          : ["function", "add HTML to an Element"],
+  "Object.setHTML"          : ["function", "replace HTML of an Element"],
+  "Object.addViaJSON"       : ["function", "build HTML via JSON and a build-callback function"],
+  "Object.addViaXML"        : ["function", "build HTML via XML and a build-callback function"],
+  "Object.addAsFirst"       : ["function", "add Element as first Node of Object"],
+  "Object.addAsLast"        : ["function", "add Element as last Node of Object"],
+  "Object.encodeHTML"       : ["function", "returns the encoded version of an Object or String"],
+  "String.decodeHTML"       : ["function", "returns the decoded version of a String"],
+  "NodeList.first"          : ["function", "returns the first Node"],
+  "NodeList.last"           : ["function", "returns the last Node"],
+  "NodeList.forEach"        : ["function", "calls a callback function for each Node"],
+  "Element.find"            : ["function", "find and returns a Node from an Element"],
+  "Element.innerTEXT"       : ["function", "returns the inner text of an Element"],
+};
+
+*/
 
 var dompteur = {
     matches : {
@@ -156,11 +190,119 @@ var dompteur = {
       "use strict";
       dompteur.domready = true;
     },
+    workOnCSS : function (ele, callbackele, callbacklist, replaceobject) {
+      "use strict";
+      var style,
+        replObj = {},
+        cblist = false,
+        cbele = false,
+        i,
+        l,
+        prop,
+        val,
+        returnO = {};
+
+      if (callbackele !== undefined) {
+        if (callbackele !== null) {
+          cbele = callbackele;
+        }
+      }
+      if (callbacklist !== undefined) {
+        if (callbacklist !== null) {
+          cblist = callbacklist;
+        }
+      }
+      if (replaceobject !== undefined) {
+        if (replaceobject !== null) {
+          replObj = replaceobject;
+        }
+      }
+      //ff and webkit
+      if (window.getComputedStyle) {
+        style = window.getComputedStyle(ele, null);
+        for (i = 0, l = style.length; i < l; i += 1) {
+          prop = style[i];
+          val = style.getPropertyValue(prop);
+          if (cbele !== false) {
+            cbele(prop, style.getPropertyValue(prop));
+          }
+          if (replObj[prop] !== undefined) {
+            ele.style[prop] = replObj[prop];
+          } else if (replObj.all !== undefined) {
+            ele.style[prop] = '';
+          }
+          returnO[prop] = val;
+        }
+        if (cblist !== false) {
+          cblist(returnO);
+        }
+        return returnO;
+      }
+      //ie and old opera
+      if (ele.currentStyle) {
+        style = ele.currentStyle;
+        for (prop in style) {
+          if (style[prop] !== undefined) {
+            if (style[prop].length > 3) {
+              if (cbele !== false) {
+                cbele(prop, style[prop]);
+              }
+              if (replObj[prop] !== undefined) {
+                ele.style[prop] = replObj[prop];
+              } else if (replObj.all !== undefined) {
+                ele.style[prop] = '';
+              }
+              returnO[prop] = style[prop];
+            }
+          }
+        }
+        if (cblist !== false) {
+          cblist(returnO);
+        }
+        return returnO;
+      }
+      //fallback
+      style = ele.style;
+      if (typeof style === 'object') {
+        for (prop in style) {
+          if (typeof style[prop] !== 'function') {
+            if (cbele !== false) {
+              cbele(prop, style[prop]);
+            }
+            if (replObj[prop] !== undefined) {
+              ele.style[prop] = replObj[prop];
+            } else if (replObj.all !== undefined) {
+              ele.style[prop] = '';
+            }
+            returnO[prop] = style[prop];
+          }
+        }
+        if (cblist !== false) {
+          cblist(returnO);
+        }
+        return returnO;
+      }
+      return false;
+    },
     getXbyX : function (arg) {
       "use strict";
       var mode = arg.charAt(0),
         matches = dompteur.matches[mode];
       return (document[matches](arg.substr(1)));
+    },
+    onDOMReady : function (callback) {
+      "use strict";
+      if (dompteur.domready === false) {
+        if (window.addEventListener) {
+          window.addEventListener('DOMContentLoaded', dompteur.setDOMReady, false);
+          window.addEventListener('DOMContentLoaded', callback, false);
+        } else {
+          window.attachEvent('onload', dompteur.setDOMReady);
+          window.attachEvent('onload', callback);
+        }
+      } else {
+        callback();
+      }
     }
   },
   $,
@@ -168,20 +310,7 @@ var dompteur = {
 
 $ = ($ !== undefined) ? $ : dompteur.getXbyX;
 
-onDOMReady = (onDOMReady !== undefined) ? onDOMReady : function (callback) {
-  "use strict";
-  if (dompteur.domready === false) {
-    if (window.addEventListener) {
-      window.addEventListener('DOMContentLoaded', dompteur.setDOMReady, false);
-      window.addEventListener('DOMContentLoaded', callback, false);
-    } else {
-      window.attachEvent('onload', dompteur.setDOMReady);
-      window.attachEvent('onload', callback);
-    }
-  } else {
-    callback();
-  }
-};
+onDOMReady = (onDOMReady !== undefined) ? onDOMReady : dompteur.onDOMReady;
 
 Object.prototype.$ = Object.prototype.$ !== undefined ? Object.prototype.$ : function (arg) {
   "use strict";
@@ -195,14 +324,19 @@ Object.prototype.getData = Object.prototype.getData !== undefined ? Object.proto
   this.getAttribute('data-' + arg);
 };
 
-Object.prototype.setData = Object.prototype.setData !== undefined ? Object.prototype.setData : function (arg) {
+Object.prototype.setData = Object.prototype.setData !== undefined ? Object.prototype.setData : function (arg, data) {
   "use strict";
-  this.setAttribute('data-' + arg);
+  this.setAttribute('data-' + arg, data);
 };
 
 Object.prototype.addHTML = Object.prototype.addHTML !== undefined ? Object.prototype.addHTML : function (arg) {
   "use strict";
   this.innerHTML += arg;
+};
+
+Object.prototype.setHTML = Object.prototype.setHTML !== undefined ? Object.prototype.setHTML : function (arg) {
+  "use strict";
+  this.innerHTML = arg;
 };
 
 Object.prototype.addViaJSON = Object.prototype.addViaJSON !== undefined ? Object.prototype.addViaJSON : function (json, buildfunction) {
@@ -253,7 +387,7 @@ Object.prototype.addAsLast = Object.prototype.addAsLast !== undefined ? Object.p
   return ele;
 };
 
-Object.prototype.encodeHTML = Object.prototype.encodeIt !== undefined ? Object.prototype.encodeIt : function () {
+Object.prototype.encodeHTML = Object.prototype.encodeHTML !== undefined ? Object.prototype.encodeHTML : function () {
   "use strict";
   if (typeof this === 'object') {
     return dompteur.htmlencode(this.outerHTML);
@@ -280,7 +414,7 @@ NodeList.prototype.last = NodeList.prototype.last !== undefined ? NodeList.proto
         return this[i];
       }
     }
-    --i;
+    i -= 1;
   }
 };
 
@@ -289,4 +423,19 @@ NodeList.prototype.forEach = NodeList.prototype.forEach !== undefined ? NodeList
 Element.prototype.find = Element.prototype.find !== undefined ? Element.prototype.find : Element.prototype.querySelectorAll;
 
 Element.prototype.innerTEXT = Element.prototype.innerTEXT !== undefined ? Element.prototype.innerTEXT : Element.prototype.textContent;
+
+Element.prototype.getCSS = Element.prototype.getCSS !== undefined ? Element.prototype.getCSS : function () {
+  "use strict";
+  return dompteur.workOnCSS(this, null, null);
+};
+
+Element.prototype.clearCSS = Element.prototype.clearCSS !== undefined ? Element.prototype.clearCSS : function () {
+  "use strict";
+  dompteur.workOnCSS(this, null, null, {'all': true});
+};
+
+Element.prototype.setCSS = Element.prototype.setCSS !== undefined ? Element.prototype.setCSS : function (cssobject) {
+  "use strict";
+  dompteur.workOnCSS(this, null, null, cssobject);
+};
 
