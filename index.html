@@ -3,9 +3,10 @@
   <meta charset="utf-8">
   <title>DOMpteur</title>
   <script type="text/javascript" src="./DOMpteur.js"></script>
+  <script type="text/javascript" src="./script.js"></script>
 </head>
 <body>
-  <h1>DOMpteur <small>v0.2.2</small></h1>
+  <h1>DOMpteur <small>v0.2.3</small></h1>
   <h2>play with your DOM-tree</h2>
   <div id="demodiv">
     <p id="demoele" class="demoeleclass" data-foo="foodata">lorem ipsum</p>
@@ -26,8 +27,8 @@
   <div id="demoencode">
     
   </div>
-  <div id="withstyle" style="background: #333; color: #ccc; border: 1px solid black; display: none;">
-    
+  <div id="withstyle" style="background: #333; height: 400px; width: 400px; display: inline-block; color: #ccc; border: 1px solid black; display: none;">
+    foo
   </div>
   <pre style="display:none;"><code id="xmlexample"><!--
     <chapters>
@@ -57,111 +58,5 @@
       </chapter>
     </chapters>
 --></code></pre>
-  <script>
-    onDOMReady(function () {
-      window.setTimeout(demos,   500,  0);
-      window.setTimeout(demos,  1500,  1);
-      window.setTimeout(demos,  3000,  2);
-      window.setTimeout(demos,  4500,  3);
-      window.setTimeout(demos,  6000,  4);
-      window.setTimeout(demos,  7500,  5);
-      window.setTimeout(demos,  9000,  6);
-      window.setTimeout(demos, 10500,  8);
-      window.setTimeout(demos, 12000,  9);
-      window.setTimeout(demos, 13500, 10);
-      window.setTimeout(demos, 15000, 11);
-      
-      window.setTimeout(demos, 1000, 7, '#e3ae23');
-      window.setTimeout(demos, 2000, 7, '#e33323');
-      window.setTimeout(demos, 3000, 7, '#1333f3');
-      window.setTimeout(demos, 4000, 7, '#13f3f3');
-      window.setTimeout(demos, 5000, 7, '#cccccc');
-      window.setTimeout(demos, 6000, 7, '#666666');
-      window.setTimeout(demos, 7000, 7, '#000000');
-    });
-    
-    function demos (i) {
-      var args = Array.prototype.slice.call(arguments), ele;
-      switch (i) {
-        case 0:
-          dompteur.addCSS('* {font-family: "Lucida Grande", "Lucida Sans Unicode", Geneva, sans-serif; }');
-          dompteur.addCSS('style.css');
-          break;
-        case 1:
-          $('#demoele').addHTML('<br>add HTML via Id');
-          break;
-        case 2:
-          $('.demoeleclass')[0].addHTML('<br>add HTML via Class');
-          break;
-        case 3:
-          $('#demodiv').$(' p')[1].addHTML('<br>add HTML via TagName');
-          break;
-        case 4:
-          $('#demodiv').$(' div')[0].$(' p').forEach(
-            function (elem) {
-              elem.addHTML('add HTML via Id, two TagNames and forEach');
-            }
-          );
-          break;
-        case 5:
-          $('#demodiv').childNodes.last().addAsFirst({
-            text:'foo',
-            tag:'p'
-          });
-          break;
-        case 6:
-          ele = document.createElement('p');
-          ele.innerText = 'bar';
-          $('#demodiv').childNodes.last().addAsLast(ele);
-          break;
-        case 7:
-          $('#demodiv').find('p').forEach(
-            function (elem) {
-              elem.style.color = args[1];
-            }
-          );
-          break;
-        case 8:
-          var xml = $('#xmlexample').innerHTML;
-          xml = xml.substr(9, xml.length-13);
-          $('#demoxml').addViaXML(xml, function (json) {
-            var i, chapter, html = '';
-            for (i = 0; i < json.CHAPTERS.CHAPTER.length; i++) {
-              chapter = json.CHAPTERS.CHAPTER[i];
-              html += chapter.START.$ + ' ' + chapter.TITLE.$;
-              if (typeof chapter.HREF.$ === 'string') {
-                if (chapter.HREF.$.length > 3) {
-                  html += ' &lt;' + chapter.HREF.$ + '&gt;';
-                  /*
-                  if (typeof chapter.IMAGE.$ === 'string') {
-                    if (chapter.IMAGE.$.length > 3) {
-                      html += ' &lt;' + chapter.IMAGE.$ + '&gt;';
-                    }
-                  }
-                  */
-                }
-              }
-              html += '<br/>';
-            }
-            return html;
-          });
-          break;
-        case 9:
-          window.setTimeout("$('#demoencode').addAsFirst('<br/><br/>');", 1000);
-          $(' head')[0].find('style')[0].innerHTML = '';
-          $('#demoencode').addHTML($('#demoele').encodeHTML() + '<br/>');
-          $('#demoencode').addHTML('<div>foo</div>'.encodeHTML() + '<br/>');
-          $('#demoencode').addHTML('&lt;div&gt;foo&lt/div&gt;'.decodeHTML() + '<br/>');
-          break;
-        case 10:
-          $('#withstyle').setHTML(JSON.stringify($('#withstyle').getCSS(), null, '  '));
-          $('#withstyle').setCSS({'display':'block'});
-          break;
-        case 11:
-          $('#withstyle').clearCSS();
-          break;
-      }
-    }
-  </script>
 </body>
 </html>

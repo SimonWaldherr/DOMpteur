@@ -1,0 +1,42 @@
+{
+  "name": "dompteur",
+  "title": "DOMpteur",
+  "description": "play with the Document Object Model (DOM) tree",
+  "version": "0.2.3",
+  "homepage": "https://github.com/SimonWaldherr/DOMpteur",
+  "author": {
+    "name": "Simon Waldherr",
+    "email": "contact@simonwaldherr.de",
+    "url": "http://simon.waldherr.eu/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SimonWaldherr/DOMpteur.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SimonWaldherr/DOMpteur/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://simon.waldherr.eu/license/mit/"
+    }
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": ">= 0.4.1",
+    "gzip-js": ">= 0.3.1",
+    "grunt-contrib-jshint": ">= 0.6.0",
+    "grunt-contrib-uglify": ">= 0.2.2",
+    "grunt-compare-size": ">= 0.0.0",
+    "gzip-js": ">= 0.3.1"
+  },
+  "keywords": [
+    "dom",
+    "ready",
+    "html",
+    "xml",
+    "getElement",
+    "selector"
+  ]
+}

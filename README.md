@@ -4,6 +4,7 @@ play with the Document Object Model (DOM) tree
 
 ##Version
 
+* 0.2.3) get position infos of an element
 * 0.2.2) important bugfixes and CSS helper added
 * 0.2.1) add CSS and JS functions
 * 0.2.0) de/encode html and parse xml

@@ -5,3 +5,9 @@ div, p {
 p {
   padding-left: 10px;
 }
+
+#demoele {
+  margin: 20px auto 20px auto;
+  padding: 15px;
+  width: 40%;
+}

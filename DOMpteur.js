@@ -5,7 +5,7 @@
  * Released under the MIT Licence - http://simon.waldherr.eu/license/mit/
  *
  * Github:  https://github.com/simonwaldherr/DOMpteur/
- * Version: 0.2.2
+ * Version: 0.2.3
  */
 
 /*jslint browser: true, indent: 2 */
@@ -17,7 +17,7 @@ var about = {
   "dompteur.htmldecode"     : ["function", "decode html"],
   "dompteur.htmlencode"     : ["function", "encode html"],
   "dompteur.toJSON"         : ["function", "convert html/xml to json"],
-  "dompteur.addHeadElement" : ["function", "add style/link/script to head"],
+  "dompteur.addElement"     : ["function", "add style/link/script to head"],
   "dompteur.addCSS"         : ["function", "see above (but only for style/link)"],
   "dompteur.addJS"          : ["function", "see above (but only for script)"],
   "dompteur.setDOMReady"    : ["function", "set dompteur.domready to true"],
@@ -54,6 +54,12 @@ var dompteur = {
       '=': 'getElementsByTagName',
       '.': 'getElementsByClassName',
       '*': 'querySelectorAll'
+    },
+    popoverdata : {
+      
+    },
+    elementcount : {
+      i: 1
     },
     domready : false,
     defaultTagName : 'p',
@@ -134,7 +140,7 @@ var dompteur = {
 
       return json;
     },
-    addHeadElement: function (content, id, mode) {
+    addElement: function (content, id, mode) {
       "use strict";
       var newid,
         ele,
@@ -151,9 +157,12 @@ var dompteur = {
                 return false;
               }
             }
+          } else if (mode === 'div') {
+            ele = document.getElementById(id);
           }
         } else {
-          newid = 'dompteur' + parseInt(Date.now() / 1000, 10);
+          newid = 'dompteur_' + dompteur.elementcount.i;
+          dompteur.elementcount.i += 1;
           if (content.indexOf('{') !== -1) {
             ele = document.createElement(mode);
             ele.innerHTML = content;
@@ -163,14 +172,20 @@ var dompteur = {
               ele.href = content;
               ele.rel = "stylesheet";
               ele.type = "text/css";
-            } else {
+            } else if (mode === 'script') {
               ele = document.createElement('script');
               ele.src = content;
               ele.type = "text/javascript";
+            } else {
+              ele = document.createElement('div');
             }
           }
           ele.id = newid;
-          document.getElementsByTagName('head')[0].appendChild(ele);
+          if (mode === 'div') {
+            document.getElementsByTagName('body')[0].appendChild(ele);
+          } else {
+            document.getElementsByTagName('head')[0].appendChild(ele);
+          }
         }
         if (newid !== undefined) {
           return newid;
@@ -180,11 +195,15 @@ var dompteur = {
     },
     addCSS : function (content, id) {
       "use strict";
-      return dompteur.addHeadElement(content, id, 'style');
+      return dompteur.addElement(content, id, 'style');
     },
     addJS : function (content, id) {
       "use strict";
-      return dompteur.addHeadElement(content, id, 'script');
+      return dompteur.addElement(content, id, 'script');
+    },
+    addDiv : function (content, id) {
+      "use strict";
+      return dompteur.addElement(content, id, 'div');
     },
     setDOMReady : function () {
       "use strict";
@@ -288,7 +307,11 @@ var dompteur = {
       "use strict";
       var mode = arg.charAt(0),
         matches = dompteur.matches[mode];
-      return (document[matches](arg.substr(1)));
+
+      if (matches !== undefined) {
+        return (document[matches](arg.substr(1)));
+      }
+      return document.querySelectorAll(arg);
     },
     onDOMReady : function (callback) {
       "use strict";
@@ -303,6 +326,9 @@ var dompteur = {
       } else {
         callback();
       }
+    },
+    lightbox : function (object) {
+      
     }
   },
   $,
@@ -432,10 +458,28 @@ Element.prototype.getCSS = Element.prototype.getCSS !== undefined ? Element.prot
 Element.prototype.clearCSS = Element.prototype.clearCSS !== undefined ? Element.prototype.clearCSS : function () {
   "use strict";
   dompteur.workOnCSS(this, null, null, {'all': true});
+  return this;
 };
 
 Element.prototype.setCSS = Element.prototype.setCSS !== undefined ? Element.prototype.setCSS : function (cssobject) {
   "use strict";
   dompteur.workOnCSS(this, null, null, cssobject);
+  return this;
 };
 
+Element.prototype.getPosition = Element.prototype.getPosition !== undefined ? Element.prototype.getPosition : function () {
+  "use strict";
+  var position = this.getBoundingClientRect(),
+    ele = this;
+
+  position.position = this.style.position;
+  position.left2 = 0;
+  position.top2 = 0;
+  while (ele.tagName !== "BODY") {
+    position.left2 += ele.offsetLeft + ele.scrollLeft;
+    position.top2 += ele.offsetTop + ele.scrollTop;
+    ele = ele.offsetParent;
+  }
+
+  return position;
+};
