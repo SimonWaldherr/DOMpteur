@@ -5,7 +5,7 @@
  * Released under the MIT Licence - http://simon.waldherr.eu/license/mit/
  *
  * Github:  https://github.com/simonwaldherr/DOMpteur/
- * Version: 0.2.3
+ * Version: 0.2.4
  */
 
 /*jslint browser: true, indent: 2 */
@@ -55,12 +55,10 @@ var dompteur = {
       '.': 'getElementsByClassName',
       '*': 'querySelectorAll'
     },
-    popoverdata : {
-      
-    },
     elementcount : {
       i: 1
     },
+    timeoutReference : false,
     domready : false,
     defaultTagName : 'p',
     htmldecode: function (string) {
@@ -327,8 +325,29 @@ var dompteur = {
         callback();
       }
     },
-    lightbox : function (object) {
-      
+    debouncedEventListener : function (element, event, callback) {
+      "use strict";
+      if (element.addEventListener !== undefined) {
+        element.addEventListener(event, function (evt) {
+          if (dompteur.timeoutReference) {
+            clearTimeout(dompteur.timeoutReference);
+          }
+          dompteur.timeoutReference = setTimeout(function () {
+            callback(evt);
+          }, 200);
+        }, false);
+      } else if (element.attachEvent !== undefined) {
+        element.attachEvent("on" + event, function (evt) {
+          if (dompteur.timeoutReference) {
+            clearTimeout(dompteur.timeoutReference);
+          }
+          dompteur.timeoutReference = setTimeout(function () {
+            callback(evt);
+          }, 200);
+        });
+      } else {
+        return false;
+      }
     }
   },
   $,
