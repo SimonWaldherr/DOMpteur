@@ -2,7 +2,7 @@
   "name": "dompteur",
   "title": "DOMpteur",
   "description": "play with the Document Object Model (DOM) tree",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "homepage": "https://github.com/SimonWaldherr/DOMpteur",
   "author": {
     "name": "Simon Waldherr",

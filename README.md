@@ -4,6 +4,7 @@ play with the Document Object Model (DOM) tree
 
 ##Version
 
+* 0.2.5) ajax added
 * 0.2.4) debounce event listener
 * 0.2.3) get position infos of an element
 * 0.2.2) important bugfixes and CSS helper added

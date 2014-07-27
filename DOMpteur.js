@@ -5,11 +5,11 @@
  * Released under the MIT Licence - http://simon.waldherr.eu/license/mit/
  *
  * Github:  https://github.com/simonwaldherr/DOMpteur/
- * Version: 0.2.4
+ * Version: 0.2.5
  */
 
 /*jslint browser: true, indent: 2 */
-/*global Object, Element, NodeList */
+/*global Object, Element, NodeList, ActiveXObject */
 /*
 
 var about = {
@@ -24,6 +24,8 @@ var about = {
   "dompteur.workOnCSS"      : ["function", "calls a callback function for each style or for a stylelist"],
   "dompteur.getXbyX"        : ["function", "get Element(s) by id/name/class/tag/..."],
   "dompteur.onDOMReady"     : ["function", "calls setDOMReady and a definable callback on DOM ready"],
+  "dompteur.debouncedEL"    : ["function", "debounce EventListener Events"],
+  "dompteur.ajax"           : ["function", "Asynchronous JavaScript and XML"],
   "$"                       : ["function", "short version of dompteur.getXbyX if $ is undefined"],
   "onDOMReady"              : ["function", "short version of dompteur.onDOMReady"],
   "Object.$"                : ["function", "same as $ but as function of an Object"],
@@ -325,7 +327,7 @@ var dompteur = {
         callback();
       }
     },
-    debouncedEventListener : function (element, event, callback) {
+    debouncedEL : function (element, event, callback) {
       "use strict";
       if (element.addEventListener !== undefined) {
         element.addEventListener(event, function (evt) {
@@ -347,6 +349,47 @@ var dompteur = {
         });
       } else {
         return false;
+      }
+    },
+    ajax : function (url, callback, post) {
+      "use strict";
+      this.bindFunction = function (caller, object) {
+        return function () {
+          return caller.apply(object, [object]);
+        };
+      };
+
+      this.stateChange = function () {
+        if (this.request.readyState === 4) {
+          this.callback(this.request.responseText);
+        }
+      };
+
+      this.getRequest = function () {
+        if (window.ActiveXObject) {
+          return new ActiveXObject('Microsoft.XMLHTTP');
+        }
+        if (window.XMLHttpRequest) {
+          return new XMLHttpRequest();
+        }
+        return false;
+      };
+
+      this.post = (post || "");
+      this.callback = callback;
+      this.url = url;
+      this.request = this.getRequest();
+
+      if (this.request) {
+        var req = this.request;
+        req.onreadystatechange = this.bindFunction(this.stateChange, this);
+        if (this.post !== "") {
+          req.open("POST", url, true);
+          req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        } else {
+          req.open("GET", url, true);
+        }
+        req.send(this.post);
       }
     }
   },

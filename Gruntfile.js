@@ -16,7 +16,7 @@ module.exports = function(grunt) {
       options: {
         banner: '/* * * * * * * * * *\n' +
                 ' *    DOM pteur    *\n' +
-                ' *  Version 0.2.4  *\n' +
+                ' *  Version 0.2.5  *\n' +
                 ' *  License:  MIT  *\n' +
                 ' * Simon  Waldherr *\n' +
                 ' * * * * * * * * * */\n\n',
