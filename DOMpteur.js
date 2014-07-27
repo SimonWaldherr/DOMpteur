@@ -5,7 +5,7 @@
  * Released under the MIT Licence - http://simon.waldherr.eu/license/mit/
  *
  * Github:  https://github.com/simonwaldherr/DOMpteur/
- * Version: 0.2.5
+ * Version: 0.2.6
  */
 
 /*jslint browser: true, indent: 2 */
@@ -24,6 +24,7 @@ var about = {
   "dompteur.workOnCSS"      : ["function", "calls a callback function for each style or for a stylelist"],
   "dompteur.getXbyX"        : ["function", "get Element(s) by id/name/class/tag/..."],
   "dompteur.onDOMReady"     : ["function", "calls setDOMReady and a definable callback on DOM ready"],
+  "dompteur.eventListener"  : ["function", "event listener"],
   "dompteur.debouncedEL"    : ["function", "debounce EventListener Events"],
   "dompteur.ajax"           : ["function", "Asynchronous JavaScript and XML"],
   "$"                       : ["function", "short version of dompteur.getXbyX if $ is undefined"],
@@ -325,6 +326,16 @@ var dompteur = {
         }
       } else {
         callback();
+      }
+    },
+    eventListener : function (element, event, callback) {
+      "use strict";
+      if (element.addEventListener !== undefined) {
+        element.addEventListener(event, callback, false);
+      } else if (element.attachEvent !== undefined) {
+        element.attachEvent("on" + event, callback);
+      } else {
+        return false;
       }
     },
     debouncedEL : function (element, event, callback) {
