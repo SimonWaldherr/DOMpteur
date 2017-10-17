@@ -1,8 +1,8 @@
-#DOMpteur
+# DOMpteur
 
 play with the Document Object Model (DOM) tree
 
-##Version
+## Version
 
 * 0.2.6) event listener
 * 0.2.5) ajax added
@@ -13,11 +13,11 @@ play with the Document Object Model (DOM) tree
 * 0.2.0) de/encode html and parse xml
 * 0.1.0) init Commit
 
-##Demo
+## Demo
 
 [basic](http://simonwaldherr.github.io/DOMpteur/)
 
-##License
+## License
 
 The MIT License (MIT)  
 Copyright © 2014 Simon Waldherr  
